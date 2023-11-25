@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+	<head>
+		<link href="css/nouislider.min.css" rel="stylesheet">
+
+		<style>
+			body {
+				margin: 8;
+			}
+
+			canvas { 
+				position: absolute;
+				display: block;
+			}
+
+			tasks-container {
+				margin: 10px;
+		  		display: flex;
+			}
+
+
+			calibrate-container {
+				margin: 10px;
+		  		display: flex;
+			}
+
+			inputs-container {
+				display: flex;
+				justify-content: space-between;
+				margin: 10px;
+			}
+
+
+			chart-container {
+				margin: 10px;
+				display: flex;
+			}
+
+			chart-slider-container {
+				margin: 10px;
+				display: flex;
+			}
+
+			#calibrate_image { 
+				z-index: 1;
+				position: absolute;
+			}
+
+
+			#chart_slider {
+				margin-top: 10px;
+				width: 100vw;
+			}
+
+			.noUi-connect {
+			    background: #CD5C5C;
+			}
+
+			/*When writing css, the work of Andrea Tondo was partially used*/
+			ul#menu {
+				display: flex;
+				top: 0;
+				width: 100%;
+				height: 3em;
+				margin: 0;
+				padding: 0;
+				background: #FFFFFF;
+				box-shadow: 0 -1px rgba(0,0,0,.5) inset;
+			}
+
+			ul#menu > li {
+				z-index: 4;
+			  	float: left;
+			  	list-style-type: none;
+			  	position: relative;
+			}
+
+			label {
+			  	position: relative;
+			  	display: block;
+			  	padding: 0 18px 0 12px;
+			  	line-height: 3em;
+			  	transition: background 0.3s;
+			  	cursor: pointer;
+			}
+
+			label:after {
+			  	position: absolute;
+			  	display: block;
+			  	top: 50%;
+			  	right: 5px;
+			  	width: 0;
+			  	height: 0;
+			  	border-top: 4px solid rgba(255,255,255,.5);
+			  	border-bottom: 0 solid rgba(255,255,255,.5);
+			  	border-left: 4px solid transparent;
+			  	border-right: 4px solid transparent;
+			  	transition: border-bottom .1s, border-top .1s .1s;
+		  	}
+
+			label:hover, input:checked ~ label{
+				background: rgba(0,0,0,.3);
+			}
+
+			input:checked ~ label:after {
+			  	border-top: 0 solid rgba(255,255,255,.5);
+			  	border-bottom: 4px solid rgba(255,255,255,.5);
+			  	transition: border-top .1s, border-bottom .1s .1s;
+			}
+
+
+			ul > li > input {
+				display: none
+			}
+
+
+			input:checked ~ ul.submenu {
+				max-height: 2000px;
+				transition: max-height 0.5s ease-in;
+			}
+
+
+			ul.submenu {
+			  	max-height: 0;
+			  	padding: 0;
+			  	overflow: hidden;
+			  	list-style-type: none;
+			  	background: #FFFFFF;
+			  	box-shadow: 0 0 1px rgba(0,0,0,.3);
+			  	transition: max-height 0.5s ease-out;
+			  	position: absolute;
+			  	min-width: 100%;
+			}
+
+			ul.submenu li a {
+			  	display: block;
+			  	padding: 12px;
+			  	color: #000000;
+			  	text-decoration: none;
+			  	box-shadow: 0 -1px rgba(0,0,0,.5) inset;
+			  	transition: background .3s;
+			  	white-space: nowrap;
+			}
+
+			ul.submenu li a:hover {
+			  	background: rgba(0,0,0,.3);
+			}
+
+			inputs-container > div > label {
+			  	position: relative;
+			  	display: block;
+			  	padding: 0 18px 0 12px;
+			  	line-height: 3em;
+			  	transition: background 0.3s;
+			}
+
+			inputs-container > div {
+				display:  flex;
+			}
+
+			input {
+				display: none;
+			}
+
+			body > div {
+				display: flex;
+				justify-content: center;
+			}
+
+			body > div > div > label:hover {
+		  		color: #CD5C5C;
+			}
+
+			body > div > div > label {
+				padding: 0 0.7em 0 0.7em;
+			}
+
+			body > div > div {
+				display: flex;
+				align-items: center;
+			}
+
+			.triangle-left {
+			    border-right: 0.3em solid; 
+			    border-bottom: 0.3em solid;
+			    height: 0.5em;
+			    width: 0.5em;
+			    transform: rotate(135deg);
+
+			}
+
+			.triangle-right {
+			    border-right: 0.3em solid; 
+			    border-bottom: 0.3em solid;
+			    height: 0.5em;
+			    width: 0.5em;
+			    transform: rotate(-45deg);
+			}
+
+			td, th {
+				padding-right:30px;
+				text-align: center;
+			}
+
+
+		</style>
+	</head>
+	<body>
+
+		<script src="js/nouislider.min.js"></script>
+		<script src="js/wNumb.min.js"></script>
+		<script src="js/chart.min.js"></script>
+		<script src="js/regression.js"></script>
+
+		<ul id="menu"></ul>
+		<div>
+			<p id='taskName'></p>
+		</div>
+		<div>
+			<div>
+				<div class="triangle-left"></div>
+				<label id="prevImage">Prev</label>
+			</div>
+			<div>
+				<label id='nextImage'>Next</label>
+				<div class="triangle-right"></div>
+			</div>
+		</div>
+
+		<calibrate-container>
+			<div id="canvas_calibrate_container">
+				<canvas id="calibrate_image"></canvas>
+			</div>
+		</calibrate-container>
+		<chart-container>
+			<div id="canvas_chart_container">
+				<canvas id="chart"></canvas>
+				<canvas id="chart_line_layer"></canvas>
+			</div>
+		</chart-container>
+
+
+		<chart-slider-container>
+			<div id="chart_slider"></div>
+		</chart-slider-container>
+
+		<inputs-container>
+			<div>
+				<div>
+					<label onclick='sliderControler([0, null]);'>Left</label>
+					<input type='button'>
+				</div>
+				<div>
+					<label onclick='sliderControler([1, null]);'>Right</label>
+					<input type='button'>
+				</div>
+			</div>
+			<div>
+				<table id="result"></table>
+			</div>
+			<div>
+				<div>
+					<label onclick='sliderControler([null, 0]);'>Left</label>
+					<input type='button'>
+				</div>
+				<div>
+					<label onclick='sliderControler([null, 1]);'>Right</label>
+					<input type='button'>
+				</div>
+			</div>
+		</inputs-container>
+
+
+		<script>
+
+			const intToPix = (number) => `${number}px`;
+			const pixToInt = (pix) => +pix.slice(0, -2);
+			const getById = (tagName) => document.getElementById(tagName);
+			const getByTagName = (tagName) => document.getElementsByTagName(tagName)[0];
+			const createTag = (tagName) => document.createElement(tagName);
+
+
+			const loadImage = function(src) {
+				return new Promise((resolve, reject) => {
+					const img = new Image();
+					img.onload = () => resolve(img);
+					img.onerror = reject;
+					img.src = src;
+				});
+			}
+
+
+			const freezeImage = function(canvasPointer, image) {
+				canvasPointer.getContext('2d').clearRect(0, 0, canvasPointer.width, canvasPointer.height)
+				canvasPointer.height = image.height;
+				canvasPointer.width = image.width;
+				canvasPointer.getContext('2d').drawImage(image, 0, 0);
+			}
+
+			const resizeWidth = function(layers) {
+				layers.forEach((layer) => layer.style.width = intToPix(getByTagName('calibrate-container').offsetWidth));
+			}
+
+			const resizeChartHeight = function(layers, scale) {
+				layers.forEach((layer) => layer.style.height = intToPix(getByTagName('calibrate-container').offsetHeight * scale));
+			}
+
+			
+			const createChartSlider = function() {
+				const slider = getById('chart_slider');
+				noUiSlider.create(slider, {
+					orientation: "horizontal",
+				    connect: true,
+				    format: wNumb({
+				        decimals: 0
+				    }),
+				    start: [0, 1],
+				    range: {
+				        'min': 0,
+				        'max': 1,
+				    },
+				});
+				return slider;
+			}
+
+			const drawVerticalLine = function() {
+
+				const poolOffLines = new Map();
+				
+				return async function(info, layer) {
+
+					const ctx = layer.getContext('2d');
+					const scale = layer.width/info['width'];
+
+					poolOffLines.set(info.name, info.value*scale);
+
+					ctx.clearRect(0, 0, layer.width, layer.height);
+					poolOffLines.forEach((value, name) => {
+						ctx.beginPath();
+				        ctx.moveTo(value, 0);
+				        ctx.strokeStyle = '#000000';
+				        ctx.lineTo(value, layer.height);
+				        ctx.stroke();
+					});
+
+					return poolOffLines;
+				}
+					
+			}();
+
+			
+
+			const createChart = async function(dataAmont, pointsData) {
+
+				const labels = [...Array(dataAmont).keys()];
+
+				const data = {
+				  labels: labels,
+				  datasets: [
+				    {
+				      data: pointsData,
+				      borderColor: '#CD5C5C',
+				      fill: false,
+				      cubicInterpolationMode: 'monotone',
+				      tension: 0.4
+				    },
+				  ]
+				};
+
+				const config = {
+					type: 'line',
+					data: data,
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						layout: {
+							padding: 0,
+							bottom: 10
+						},
+						elements: {
+		                    point: {
+		                        radius: 0
+		                    }
+		                },
+						scales: {
+							x: {
+								display: false,
+								title: {
+							  		display: false
+								},
+							},
+							y: {
+								display: false,
+							}
+						},
+						plugins: {
+							legend: {
+							    display: false,
+							},
+						},
+					},
+				};
+
+				return new Chart(getById('chart').getContext('2d'), config);
+			};
+
+			const redrawParametersOnChart = function(firstValue, secondValue, K, chart, mode) {
+				if (mode != 'calibrate') {
+					mode = 'notCalibrate';
+				}
+
+				// window.K
+
+				getById("result").innerHTML = {
+					calibrate: `
+						<tr>
+							<th>Y1</th>
+							<th>Y2</th>
+							<th>Diff (pixels)</th>
+							<th>K</th>
+							<th></th>
+						</tr>
+						<tr>
+							<td>${(chart.data.datasets[0].data[firstValue]/255).toFixed(3) ?? 0}</td>
+							<td>${(chart.data.datasets[0].data[secondValue]/255).toFixed(3) ?? 0}</td>
+							<td>${secondValue - firstValue ?? 0}</td>
+							<td>
+								<input id="K" style="display: block;width: 7ex; margin: 0px;" type="text" value='0'/>
+							</td>
+							<td>
+								<label onclick='window.K = +(document.getElementById("K").value.replace(",","."));'>Apply</label>
+								<input type="submit"/>
+							</td>
+						</tr>
+					`,
+					notCalibrate: `
+						<tr>
+							<th>Y1</th>
+							<th>Y2</th>
+							<th>Diff (cm)</th>
+						</tr>
+						<tr>
+							<td>${(chart.data.datasets[0].data[firstValue]/255).toFixed(3) ?? 0}</td>
+							<td>${(chart.data.datasets[0].data[secondValue]/255).toFixed(3) ?? 0}</td>
+							<td>${(K * (secondValue - firstValue)).toFixed(3) ?? 0}</td>
+						</tr>
+					`
+				}[mode];
+			}
+
+			const hangChartSliderHandler = function(slider, options) {
+
+
+				slider.noUiSlider.off('update.one');
+				slider.noUiSlider.on('update.one', function(values) {
+
+					options.chartLineLayer.width = pixToInt(getById('chart').style.width);
+					options.chartLineLayer.height = pixToInt(getById('chart').style.height);
+
+					const firstValue = slider.noUiSlider.get()[0];
+					const secondValue = slider.noUiSlider.get()[1];
+
+
+					window.prevPosition = {
+						start: firstValue,
+						end: secondValue,
+					};
+
+
+					drawVerticalLine({
+						name: "firstSlider",
+						value: firstValue,
+						width: options.width,
+					}, options.chartLineLayer);
+					drawVerticalLine({
+						name: "secondSlider",
+						value: secondValue,
+						width: options.width,
+					}, options.chartLineLayer);
+
+					redrawParametersOnChart(firstValue, secondValue, options.K, options.chart, options.mode);
+				});
+			} 
+
+			const customizeSizes = function(pointers) {
+				pointers.canvasCalibrateContainer.style.height = intToPix(pointers.height);
+				pointers.canvasCalibrateContainer.style.width = intToPix(getByTagName('calibrate-container').scrollWidth);	
+
+				resizeChartHeight([pointers.canvasChartContainer, getById('chart'), pointers.chartLineLayer], pointers.scaleHeightChart);
+				resizeWidth([pointers.calibrateImage, pointers.canvasCalibrateContainer, pointers.canvasChartContainer, pointers.chartLineLayer]);
+				
+			}
+
+			const drawImage = function(image, canvas) {
+				canvas.height = image.height;
+				canvas.width = image.width;
+				canvas.style.height = intToPix(image.height);
+				canvas.getContext('2d').drawImage(image, 0, 0);
+			}
+			
+
+			const updateChartSlider = function(slider, maxValue) {
+				slider.noUiSlider.updateOptions({
+				    range: {
+				        'min': 0,
+				        'max': maxValue-1
+				    },
+				    start: [window.prevPosition.start, window.prevPosition.end],
+				});
+			};
+
+			const loadPointsData = async function(src) {
+				let data = await fetch(src);
+				data = await data.text();
+				return data
+					.split('\r\n')
+					.filter((s) => s != '')
+					.map((s) => parseFloat(s.split('\t').pop()));
+			}
+	
+
+			const reloadContext = function() {
+
+				let scaleHeightChart = 5;
+
+				const imagesPool = {};
+				const calibrateImage = getById("calibrate_image");
+				const chartLineLayer = getById("chart_line_layer");
+				const canvasCalibrateContainer = getById("canvas_calibrate_container");
+				const canvasChartContainer = getById("canvas_chart_container");
+				const slider = createChartSlider();
+				let chart = new Chart(getById('chart').getContext('2d'));
+
+				const freezedImage = createTag('canvas');
+				freezedImage.height = 0;
+				freezedImage.width = 0;
+
+				let image = null;
+				let pointsData = null;
+				window.prevPosition = {
+					start: '0',
+					end: null,
+				};
+
+				window.addEventListener(`resize`, event => {
+					resizeWidth([calibrateImage, canvasCalibrateContainer, canvasChartContainer, chartLineLayer]);
+				}, false);
+				
+
+				return async function(src) {
+
+					slider.noUiSlider.off('update.one');
+
+					getById("taskName").innerText = `${src.split('/').pop().split('.').shift()} (${src.split('/').slice(0, -1).pop()})`;
+					window.pointer = window.gluedTasksList.indexOf(src);
+
+ 
+					if (!(src in imagesPool)) {
+						imagesPool[src] = {};
+						imagesPool[src].img = await loadImage(src);
+						imagesPool[src].data = await loadPointsData(`${src}.txt`);
+					}
+
+					if (window.prevPosition.end == null) {
+						window.prevPosition.end = imagesPool[src].img.width;
+					} 
+
+					image = imagesPool[src].img;
+					pointsData = imagesPool[src].data;
+
+					scaleHeightChart = 216/image.height + 2;
+
+					freezeImage(freezedImage, image);
+					drawImage(image, calibrateImage);
+					
+					customizeSizes({
+						canvasCalibrateContainer: canvasCalibrateContainer,
+						calibrateImage: calibrateImage,
+						canvasChartContainer:canvasChartContainer,
+						chartLineLayer: chartLineLayer,
+						scaleHeightChart: scaleHeightChart,
+						height: freezedImage.height,
+					});
+
+					chart.destroy();
+					chart = await createChart(freezedImage.width, pointsData);
+
+
+					updateChartSlider(slider, freezedImage.width);
+	
+					hangChartSliderHandler(slider, {
+						width: freezedImage.width,
+						chartLineLayer: chartLineLayer,
+						K: window.K,
+						chart: chart,
+						mode: src.split('/').pop().split('.').shift(),
+					});
+
+					
+				};
+			}();
+
+			const createHeader = function(tasksList) {
+				const menu = getById('menu');
+				Object.keys(tasksList).forEach((dirName) => {
+					const li = createTag("li");
+					const input = createTag("input");
+					input.setAttribute("type", "checkbox");
+					input.setAttribute("id", dirName);
+					const label = createTag("label");
+					label.setAttribute('for', dirName);
+					label.innerText = dirName.split('/').pop();
+					const ul = createTag("ul");
+					ul.setAttribute("class", 'submenu')
+					tasksList[dirName].forEach((fileName) => {
+						const li = createTag("li");
+						const a = createTag("a");
+						a.setAttribute('href', '#');
+						a.setAttribute('onclick', `reloadContext('${fileName}');`);
+						a.innerText = fileName.split('/').pop();
+						li.appendChild(a);
+						ul.appendChild(li);
+					});
+					li.appendChild(input);
+					li.appendChild(label);
+					li.appendChild(ul);
+					menu.appendChild(li);
+				});
+			}
+
+
+			const sliderControler = function(command) {
+				const chartSlider = document.getElementById('chart_slider');
+				command = command.map((bite, i) => {
+					if (bite != null) {
+						bite = [
+							+chartSlider.noUiSlider.get()[i] - 1,
+							+chartSlider.noUiSlider.get()[i] + 1,
+						][bite];
+					}
+					return bite;
+				})
+				chartSlider.noUiSlider.set(command);
+			}
+
+			const createBasis = async function() {
+				// let tasksList = await fetch('/getTasksList');
+				// tasksList = await tasksList.json();
+
+				let tasksList = {"./src/photos/Calibrate":["./src/photos/Calibrate/calibrate.bmp"],"./src/photos/Step1":["./src/photos/Step1/new01.bmp","./src/photos/Step1/new02.bmp","./src/photos/Step1/new03.bmp","./src/photos/Step1/new04.bmp","./src/photos/Step1/new05.bmp","./src/photos/Step1/new06.bmp","./src/photos/Step1/new10.bmp","./src/photos/Step1/new11.bmp","./src/photos/Step1/new12.bmp","./src/photos/Step1/new14.bmp","./src/photos/Step1/new15.bmp","./src/photos/Step1/new7.bmp","./src/photos/Step1/new8.bmp","./src/photos/Step1/new9.bmp"],"./src/photos/Step2":["./src/photos/Step2/new3.bmp","./src/photos/Step2/new4.bmp","./src/photos/Step2/new5.bmp"]};
+
+				createHeader(tasksList);
+
+				window.gluedTasksList = [];
+				Object.keys(tasksList).forEach((v) => {
+					gluedTasksList = [...gluedTasksList, ...tasksList[v]];
+				})
+
+				window.pointer = -1;
+				const prevImage = function() {
+					if (pointer == 0) {
+						return;
+					}
+					pointer--;
+					reloadContext(gluedTasksList[pointer]);
+				};
+
+				const nextImage = function() {
+					if (pointer == gluedTasksList.length-1) {
+						return;
+					}
+					pointer++;
+					reloadContext(gluedTasksList[pointer]);
+				};
+
+				getById("prevImage").onclick = event => (prevImage());
+				getById("nextImage").onclick = event => (nextImage());
+			}
+
+			createBasis();
+			
+// const B = 0.972;
+// const K = 0.013;
+// let sub_data = [
+//     [8, 1],
+//     [80,2],
+//     [153,3],
+//     [228,4],
+//     [303,5],
+//     [380,6],
+//     [457,7],
+//     [534,8],
+//     [612,9],
+//     [690,10],
+//     [768,11],
+//     [845,12],
+//     [922,13],
+//     [997,14],
+//     [1071,15],
+//     [1144,16],
+//     [1216,17],
+// ];
+
+// regression('polynomial', sub_data, 3);
+
+		</script>
+	</body>
+</html>

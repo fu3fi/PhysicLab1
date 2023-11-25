@@ -1,0 +1,23 @@
+{
+  "name": "mega",
+  "version": "2.1.0",
+  "description": "",
+  "main": "electron.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "build": "electron-builder --win"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^13.2.2",
+    "electron-builder": "^22.11.7"
+  },
+  "build": {
+    "win": {
+      "target": "NSIS",
+      "icon": "build/icon.ico"
+    },
+    "asar": true
+  }
+}
